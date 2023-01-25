@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/resource.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +13,8 @@ int main(int argc, char* argv[]) {
 
     char input[64];
     int status;
+
+    struct rusage ru;
 
     printf("You have shell!\n");
 
@@ -47,6 +51,14 @@ int main(int argc, char* argv[]) {
         }
         else {
             wait(&status);
+
+            if (getrusage(RUSAGE_CHILDREN, &ru) == -1) {
+                printf("rusage failed, program exit.\n");
+                exit(1);
+            }
+
+            printf("\nInvoluntary context switches: %ld\n", ru.ru_nivcsw);
+            printf("User CPU Usage Time (us):     %ld\n", ru.ru_utime.tv_usec);
         }
     }
 }
