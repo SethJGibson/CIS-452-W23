@@ -6,9 +6,6 @@
 #include <stdlib.h>
 #include <signal.h>
 
-#define READ 0
-#define WRITE 1
-
 // DISCLAIMER!!!!
 // Okay, this is a mess, but only because this is two hours worth of very distracted work.
 // The program can create any amount of children from the same parent, but the pipes used
