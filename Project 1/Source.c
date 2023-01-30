@@ -42,14 +42,8 @@ int main()
 			break;
 	}
 
-	char myStringOutput[] = "Message from Child #";
-	char myStringInput[50];
-
 	if (pid == 0) { // Child process
-		write(fd[2 * i], &myStringOutput, sizeof(myStringOutput));
-		printf("Child wrote [%s]\n", myStringOutput);
-		// 
-		//printf("[%d] - This process is Child #%d!\n", getpid(), i);
+		printf("[%d] - This process is Child #%d!\n", getpid(), i);
 	}
 	else
 	{
@@ -57,16 +51,7 @@ int main()
 			wait(&status);
 		}
 
-		for (int j = 0; j < userInputNodes; j++) {
-			read(fd[2 * j - 1], &myStringInput, sizeof(myStringInput));
-			printf("Parent received [%d] from child process\n", myStringInput);
-		}
-
-		//read(fd[0], &myStringInput, sizeof(int));
-		//printf("Parent received [%d] from child process\n", myStringInput);
-		// 
-		//wait(&status);
-		//printf("[%d] - This process is the parent!\n", getpid());
+		printf("[%d] - This process is the parent!\n", getpid());
 	}
 
 	return 0;
