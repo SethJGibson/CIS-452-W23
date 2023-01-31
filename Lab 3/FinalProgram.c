@@ -11,7 +11,7 @@ void sigHandler(int sigNum)		// Initially thought the freezing issue was due to 
 {
 	switch (sigNum) {
 	case SIGINT:
-		printf("^C received. Time to exit.\n");
+		printf(" received. Time to exit.\n");
 		exit(0);
 		break;
 	case SIGUSR1:
@@ -40,6 +40,8 @@ int main()
 //	signal(SIGUSR1, sigHandler);
 //	signal(SIGUSR2, sigHandler);
 
+	int parentPID = getpid();
+
 	printf("-------PROGRAM START--------\n");
 
 	pid = fork();
@@ -62,9 +64,9 @@ int main()
 		while (1) {
 			sleep(randomInt);
 			if ((randomInt % 2) == 0)
-				kill(pid, SIGUSR1);
+				kill(parentPID, SIGUSR1);
 			else
-				kill(pid, SIGUSR2);
+				kill(parentPID, SIGUSR2);
 			randomInt = rand() % 10 + 1;
 		}
 	}
@@ -78,6 +80,9 @@ int main()
 		signal(SIGUSR2, sigHandler);
 
 		while (1) {
+//			signal(SIGINT, sigHandler);
+//			signal(SIGUSR1, sigHandler);
+//			signal(SIGUSR2, sigHandler);
 			printf("waiting...\t");
 			pause();
 		}
