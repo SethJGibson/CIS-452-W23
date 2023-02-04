@@ -4,14 +4,11 @@
 #include <string.h>
 #include <signal.h>
 
-//#define READ 0
-//#define WRITE 1
-
-void sigHandler(int sigNum)		// Initially thought the freezing issue was due to multiple handlers. I'll undo when the freezing issue is resolved.
+void sigHandler(int sigNum)
 {
 	switch (sigNum) {
 	case SIGINT:
-		printf("^C received. Time to exit.\n");
+		printf(" received. Time to exit.\n");
 		exit(0);
 		break;
 	case SIGUSR1:
@@ -26,19 +23,9 @@ void sigHandler(int sigNum)		// Initially thought the freezing issue was due to 
 int main()
 {
 	int fd[2];
-	//int pipeCreationResult;
 	int pid;
 
-	//pipeCreationResult = pipe(fd);
-
-	//if (pipeCreationResult < 0) {
-	//	perror("Failed pipe creation\n");
-	//	exit(1);
-	//}
-
-//	signal(SIGINT, sigHandler);
-//	signal(SIGUSR1, sigHandler);
-//	signal(SIGUSR2, sigHandler);
+	int parentPID = getpid();
 
 	printf("-------PROGRAM START--------\n");
 
@@ -50,35 +37,27 @@ int main()
 		exit(1);
 	}
 
-	//int output = 3;
-	//int input;
-
 	if (pid == 0)
 	{ // Child process
-		//write(fd[1], &output, sizeof(int));
-		//printf("Child wrote [%d]\n", output);
-
 		int randomInt = rand() % 10 + 1; // Rand number from 1 - 10
 		while (1) {
 			sleep(randomInt);
 			if ((randomInt % 2) == 0)
-				kill(pid, SIGUSR1);
+				kill(parentPID, SIGUSR1);
 			else
-				kill(pid, SIGUSR2);
+				kill(parentPID, SIGUSR2);
 			randomInt = rand() % 10 + 1;
 		}
 	}
 	else
 	{
-		//read(fd[0], &input, sizeof(int));
-		//printf("Parent received [%d] from child process\n", input);
-
 		signal(SIGINT, sigHandler);
 		signal(SIGUSR1, sigHandler);
 		signal(SIGUSR2, sigHandler);
 
 		while (1) {
-			printf("waiting...\t");
+			printf("waiting... ");
+			fflush(stdout);
 			pause();
 		}
 	}
