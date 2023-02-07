@@ -1,4 +1,4 @@
-//Parent process loop
+//Child process loop
 signal(SIGINT, sigHandlerParent);
 char apple[256];
 while(1){
