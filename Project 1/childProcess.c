@@ -3,7 +3,7 @@ signal(SIGINT, sigHandlerParent);
 char apple[256];
 while(1){
     //loop until pipe contains a message
-    while(read(p[0], apple, MSGSIZE);
+    while(read(p[0], apple, MSGSIZE));
     
     //deconstruct apple
     char *token;
