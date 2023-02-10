@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-//DG - shamlessly stolen from:
+//DG - shamelessly stolen from:
 // https://stackoverflow.com/questions/71274207/how-to-bold-text-in-c-program
 #define COLOR_BOLD "\e[1m"
 #define COLOR_OFF "\e[m"
@@ -25,8 +25,6 @@ bool INPUTFLAG;
 
 //TODO
 //Signal handlers don't close pipes - im not 100% sure we need to do this but idk
-//When I tested 255 nodes the fgets wouldn't prompt for input, it'd just go with "\n"
-//Inputting 1 to send the message to node 0 is confusing, in my opinion, not a huge deal tho
 //
 
 void sigHandlerParent(int sigNum){
@@ -66,7 +64,7 @@ int main(){
 	char numInput[1];
 	do {
 		printf("Number of nodes [1-255]: ");
-		fgets(numInput, sizeof(numChildren), stdin);
+		fgets(numInput, sizeof(numChildren) + 1, stdin);
 		numChildren = atoi(numInput);
 	}
 	while(numChildren < 1);
