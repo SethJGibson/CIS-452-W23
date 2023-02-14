@@ -32,7 +32,7 @@ main()
     signal(SIGINT, sigHandlerWriter);
     int sharedMemoryID;
     struct package *sharedMemoryPointer;
-    sharedMemoryPointer->flag = 0;
+    printf("hi\n");
     key_t sharedKey = ftok("./writer.c", 1);
 
     if ((sharedMemoryID = shmget(sharedKey, sizeof(struct package), S_IWUSR | S_IRUSR | S_IRGRP | S_IWGRP | IPC_CREAT)) < 0)
@@ -46,7 +46,7 @@ main()
         perror("Unable to attach\n");
         exit(1);
     }
-
+    sharedMemoryPointer->flag = 0;
     while(1){
 
     char temp[64];
