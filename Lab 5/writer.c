@@ -6,10 +6,12 @@
 #include <sys/shm.h>
 #include <string.h>
 
-struct myStruct
+int SHUTDOWNFLAG = 0;
+
+struct package
 {
-    int myInt;
-    char myString[40];
+    int flag = 0;
+    char input[64];
 };
 
 void
@@ -17,11 +19,12 @@ main()
 {
 
     int sharedMemoryID;
-    struct myStruct *sharedMemoryPointer;
-
+    struct package *sharedMemoryPointer;
     key_t sharedKey = ftok("/producer.c", 1);
 
-    if ((sharedMemoryID = shmget(sharedKey, sizeof(struct myStruct), S_IWUSR | S_IRUSR | S_IRGRP | S_IWGRP | IPC_CREAT)) < 0)
+    while(1){
+
+    if ((sharedMemoryID = shmget(sharedKey, sizeof(struct package), S_IWUSR | S_IRUSR | S_IRGRP | S_IWGRP | IPC_CREAT)) < 0)
     {
         perror("Unable to get shared memory\n");
         exit(1);
@@ -33,13 +36,13 @@ main()
         exit(1);
     }
 
-    sharedMemoryPointer->myInt = 42;
-    char *temp = "Not Hello World";
+    
     strcpy(sharedMemoryPointer->myString, temp);
 
     if (shmdt(sharedMemoryPointer) < 0)
     {
         perror("Unable to detach\n");
         exit(1);
+    }
     }
 }

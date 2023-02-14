@@ -6,10 +6,10 @@
 #include <sys/shm.h>
 #include <string.h>
 
-struct myStruct
+struct package
 {
-    int myInt;
-    char myString[40];
+    int flag;
+    char input[64];
 };
 
 void main()
