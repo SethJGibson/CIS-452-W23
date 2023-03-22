@@ -11,7 +11,7 @@ int main()
     printf("Please input username: ");
     scanf("%s", data1);
     //data2 = (char *)realloc(data1, strlen(data1));
-    data1 = (char *)realloc(data1, strlen(data1));
+    data1 = (char *)realloc(data1, strlen(data1) + 1);
     printf("You entered: [%s]\n", data1);
     free(data1);
     //free(data2);
