@@ -3,6 +3,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+//from
+// https://stackoverflow.com/questions/7370407/get-the-start-and-end-address-of-text-section-in-an-executable
+extern char __executable_start;
+
 int global1 = 9348729;
 char* global2 = "hello im a global var";
 bool global3 = true;
@@ -25,10 +29,6 @@ int main(){
     int data2 = 2;
     int data3 = 1234567890;
 
-    char text1 = 'a';
-    char text2 = 'b';
-    char text3 = ' ';
-
     printf("Func1 address: %p\n", &func1);
     printf("Func2 address: %p\n", &func2);
     printf("Func3 address: %p\n", &func3);
@@ -38,7 +38,6 @@ int main(){
     printf("Data1 address: %p\n", &data1);
     printf("Data2 address: %p\n", &data2);
     printf("Data3 address: %p\n", &data3);
-    printf("Text1 address: %p\n", &text1);
-    printf("Text2 address: %p\n", &text2);
-    printf("Text3 address: %p\n", &text3);
+    printf("Text _start address: 0x%lx\n", (unsigned long)&__executable_start);
+    
 }
