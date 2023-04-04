@@ -3,7 +3,6 @@
 //OS Project 2
 /////////////////////////////
 
-#define _GNU_SOURCE //If this isn't defined it'll say gettid() isn't defined 
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
