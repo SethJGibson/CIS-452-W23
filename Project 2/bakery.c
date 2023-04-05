@@ -87,8 +87,7 @@ int main(){
             numBakers = atoi(numInput);
     } while (numBakers < 1);
 
-    printf("Main thread pid:%d\n", getpid());
-    pthread_t threads[numBakers + 1];
+    pthread_t threads[numBakers + 1]; //TODO test if this works without the +1
     for(int i = 0; i <= numBakers - 1; i++){
         int* bakerNumPtr = malloc(sizeof(int)); //Ensures the thread reads the correct value
         *bakerNumPtr = i + 1;
