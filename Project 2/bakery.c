@@ -60,7 +60,7 @@ int main(){
             exit(1);
     }
 
-    //Initialize semVals - We could/should add errorchecking to these
+    //Initialize semVals - We could add errorchecking to these
     semctl(mixers, 0, SETVAL, 2);
     semctl(pantry, 0, SETVAL, 1);
     semctl(fridges, 0, SETVAL, 2);
@@ -79,10 +79,10 @@ int main(){
 /////////////////////////////
 
     int numBakers; //Will hold the number of bakers/threads taken from input
-    char numInput[4]; //Holds user input
+    char numInput[4]; //Holds user input - in project1 this was only 1 long? honestly not sure how that even worked
 
     do {
-            printf("Number of bakers [1-255]: ");
+            printf("Number of bakers [1-255]: "); //technically up to 999
             fgets(numInput, sizeof(numBakers) + 1, stdin); //will cause problems if >999, probably not important to fix tho
             numBakers = atoi(numInput);
     } while (numBakers < 1);
@@ -123,7 +123,7 @@ void* bakingTime(void *num) {
 
     printf("BAKER #%d: Starting...\n", bakerNum);
 
-    sleep(1); //This is where all the stuff goes
+    sleep(1); //This is where all the actual stuff goes
 
     printf("BAKER #%d: Finished baking!\n", bakerNum);
 
