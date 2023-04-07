@@ -14,7 +14,7 @@
 #include <sys/sem.h>
 #include <sys/stat.h>
 
-void* bakingTime(); //Prototype so the function can go below main
+
 
 struct reg {
     unsigned int ing : 10;	// 10 bits for the ingredient register 
@@ -33,13 +33,10 @@ struct reg storage[2] = {
     {.ing = 0x7}
 };
 
-//struct ThreadArgs {
-//    struct sembuf* getSem;
-//    struct sembuf* returnSem;
-//
-//    int* mixers, pantry, fridges, bowls, spoons, oven;
-//    int* bakerNum;
-//};
+void* bakingTime(void* num); //Prototype so the function can go below main
+void printFridgeIng(struct reg workingReg);
+void printPantryIng(struct reg workingReg);
+char* printRecipeName(struct reg recipe);
 
 int mixers, pantry, fridges, bowls, spoons, oven;
 struct sembuf getSem = { 0, -1, 0 };
@@ -51,19 +48,6 @@ int main() {
     //SEMAPHORES
     /////////////////////////////
 
-    //Semaphore operations
-    //struct sembuf getSem;
-    //getSem.sem_num = 0; //Which semaphore in a set to perform the op on.
-    //getSem.sem_op = -1; //Value to modify the semVal by.
-    //getSem.sem_flg = 0; //IPC_NOWAIT and/or SEM_UNDO
-
-    //struct sembuf returnSem;
-    //returnSem.sem_num = 0;
-    //returnSem.sem_op = 1;
-    //returnSem.sem_flg = 0;
-
-    //Initialize semaphores
-    //int mixers, pantry, fridges, bowls, spoons, oven;
     if ((mixers = semget(IPC_PRIVATE, 1, 0600)) == -1) {
         perror("ERROR: semget mixers.\n");
         exit(1);
@@ -96,12 +80,6 @@ int main() {
     semctl(bowls, 0, SETVAL, 3);
     semctl(spoons, 0, SETVAL, 5);
     semctl(oven, 0, SETVAL, 1);
-
-    /////////////////////////////
-    //SHARED MEMORY
-    /////////////////////////////
-
-        //TODO Put shared mem stuff here
 
     /////////////////////////////
     //THREAD INIT
@@ -149,10 +127,11 @@ void* bakingTime(void* num) {
     int bakerNum = *(int*)num;
     free(num);
 
-    printf("BAKER #%d: Starting...\n", bakerNum);
+    printf("[BAKER #%d] Starting...\n", bakerNum);
 
     //sleep(1); //This is where all the actual stuff goes
     // BAKER LOGIC START
+
 
     struct reg onHand, recipe;
     onHand.ing = 0;
@@ -168,41 +147,45 @@ void* bakingTime(void* num) {
 
     for (int i = 0; i < 5; i++) {
         recipe = cookbook[order[i]];
+        char recipeStr[25];
+        strcpy(recipeStr, printRecipeName(recipe));
 
-        // THIS IS WHERE THE LOGIC CHUNK WILL GO
+        printf("[BAKER #%d] chooses %s!\n", bakerNum, recipeStr);
+
         if ((recipe.ing & storage[0].ing) > 0) {                    // If recipe needs ingredients from pantry,
-            printf("BAKER #%d: Going to Fridge...\n", bakerNum);
-            semop(fridges, &getSem, 1);                              // PROBLEM! Semaphores arent here in the thread function!
+            printf("[BAKER #%d:%s] Going to Fridge...\n", bakerNum, recipeStr);
+            semop(fridges, &getSem, 1);
 
-            printf("BAKER #%d: Entered Fridge\n", bakerNum);
-            /*baker = baker | fridges;*/
+            printf("[BAKER #%d:%s] Entered Fridge\n", bakerNum, recipeStr);
+            printf("[BAKER #%d:%s] Grabbing ingredients: ", bakerNum, recipeStr);
             onHand.ing = onHand.ing | (recipe.ing & storage[0].ing);
+            printFridgeIng(onHand);
 
-            printf("BAKER #%d: Left Fridge\n", bakerNum);
+            printf("[BAKER #%d:%s] Left Fridge\n", bakerNum, recipeStr);
             semop(fridges, &returnSem, 1);
         }
 
         if ((recipe.ing & storage[1].ing) > 0) {                    // If recipe needs ingredients from either fridge,
-            printf("BAKER #%d: Going to Pantry...\n", bakerNum);
+            printf("[BAKER #%d:%s] Going to Pantry...\n", bakerNum, recipeStr);
             semop(pantry, &getSem, 1);
 
-            printf("BAKER #%d: Entered Pantry\n", bakerNum);
-            //baker = baker | pantry;
+            printf("[BAKER #%d:%s] Entered Pantry\n", bakerNum, recipeStr);
+            printf("[BAKER #%d:%s] Grabbing ingredients: ", bakerNum, recipeStr);
             onHand.ing = onHand.ing | (recipe.ing & storage[1].ing);
+            printPantryIng(onHand);
 
-            printf("BAKER #%d: Left Pantry\n", bakerNum);
+            printf("[BAKER #%d:%s] Left Pantry\n", bakerNum, recipeStr);
             semop(pantry, &returnSem, 1);
         }
 
         semop(mixers, &getSem, 1);
-        printf("BAKER #%d: Got Mixer.\n", bakerNum);
+        printf("[BAKER #%d:%s] Got Mixer.\n", bakerNum, recipeStr);
         semop(bowls, &getSem, 1);
-        printf("BAKER #%d: Got Bowl.\n", bakerNum);
+        printf("[BAKER #%d:%s] Got Bowl.\n", bakerNum, recipeStr);
         semop(spoons, &getSem, 1);
-        printf("BAKER #%d: Got Spoon.\n", bakerNum);
-        //sleep(1);
+        printf("[BAKER #%d:%s] Got Spoon.\n", bakerNum, recipeStr);
 
-        printf("BAKER #%d: Mixing...\n", bakerNum);
+        printf("[BAKER #%d:%s] Mixing...\n", bakerNum, recipeStr);
         sleep(1);
 
         semop(mixers, &returnSem, 1);
@@ -210,16 +193,72 @@ void* bakingTime(void* num) {
         semop(spoons, &returnSem, 1);
 
         semop(oven, &getSem, 1);
-        printf("BAKER #%d: Got Oven.\n", bakerNum);
-        //printf("BAKER #%d: Baking %s...\n", bakerNum, recipe);
-        printf("BAKER #%d: Baking...\n", bakerNum);
+        printf("[BAKER #%d:%s] Got Oven.\n", bakerNum, recipeStr);
+        printf("[BAKER #%d:%s] Baking...\n", bakerNum, recipeStr);
         sleep(1);
         semop(oven, &returnSem, 1);
+
+        onHand.ing = 0;
     }
 
     // BAKER LOGIC END
 
-    printf("BAKER #%d: Finished baking!\n", bakerNum);
+    printf("[BAKER #%d] Finished baking!\n", bakerNum);
 
     return NULL;
+}
+
+void printFridgeIng(struct reg workingReg) {
+
+    if (workingReg.ing & 0x100 > 0) {
+        printf("Flour, ");
+    }
+    if (workingReg.ing & 0x80 > 0) {
+        printf("Sugar, ");
+    }
+    if (workingReg.ing & 0x40 > 0) {
+        printf("Yeast, ");
+    }
+    if (workingReg.ing & 0x20 > 0) {
+        printf("Baking soda, ");
+    }
+    if (workingReg.ing & 0x10 > 0) {
+        printf("Salt, ");
+    }
+    if (workingReg.ing & 0x8 > 0) {
+        printf("Cinnamon, ");
+    }
+    printf("\b\b.\n"); //this should write over the last comma
+    return;
+}
+
+void printPantryIng(struct reg workingReg) {
+    if (workingReg.ing & 0x4 > 0) {
+        printf("Eggs, ");
+    }
+    if (workingReg.ing & 0x2 > 0) {
+        printf("Milk, ");
+    }
+    if (workingReg.ing & 0x1 > 0) {
+        printf("Butter, ");
+    }
+    printf("\b\b.\n"); //this should write over the last comma
+    return;
+}
+
+char* printRecipeName(struct reg recipe) {
+    switch (recipe.ing) {
+    case 0x183:
+        return "COOKIES";
+    case 0x1B7:
+        return "PANCAKES";
+    case 0xD0:
+        return "PIZZA DOUGH";
+    case 0x1F4:
+        return "PRETZELS";
+    case 0x19E:
+        return "CINNAMON ROLLS";
+    default:
+        return "PRINTRECIPENAME ERROR";
+    }
 }
