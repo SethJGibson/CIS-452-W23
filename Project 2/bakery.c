@@ -13,8 +13,10 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include <sys/stat.h>
+#include <string.h>
 
-
+// https://stackoverflow.com/questions/523724/c-c-check-if-one-bit-is-set-in-i-e-int-variable
+#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 
 struct reg {
     unsigned int ing : 10;	// 10 bits for the ingredient register 
@@ -208,8 +210,8 @@ void* bakingTime(void* num) {
     return NULL;
 }
 
-void printFridgeIng(struct reg workingReg) {
-
+void printPantryIng(struct reg workingReg) {
+    //CHECK_BIT(temp, n - 1)
     if (workingReg.ing & 0x100 > 0) {
         printf("Flour, ");
     }
@@ -229,10 +231,11 @@ void printFridgeIng(struct reg workingReg) {
         printf("Cinnamon, ");
     }
     printf("\b\b.\n"); //this should write over the last comma
+    printf("%x\n", workingReg.ing);
     return;
 }
 
-void printPantryIng(struct reg workingReg) {
+void printFridgeIng(struct reg workingReg) {
     if (workingReg.ing & 0x4 > 0) {
         printf("Eggs, ");
     }
@@ -243,6 +246,7 @@ void printPantryIng(struct reg workingReg) {
         printf("Butter, ");
     }
     printf("\b\b.\n"); //this should write over the last comma
+    printf("%x\n", workingReg.ing);
     return;
 }
 
