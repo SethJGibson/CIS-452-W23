@@ -155,39 +155,39 @@ void* bakingTime(void* num) {
         printf("[BAKER #%d] chooses %s!\n", bakerNum, recipeStr);
 
         if ((recipe.ing & storage[1].ing) > 0) {                    // If recipe needs ingredients from pantry,
-            printf("[BAKER #%d:%s] Going to Fridge...\n", bakerNum, recipeStr);
+            //printf("[BAKER #%d:%s] Going to Fridge...\n", bakerNum, recipeStr);
             semop(fridges, &getSem, 1);
 
-            printf("[BAKER #%d:%s] Entered Fridge\n", bakerNum, recipeStr);
-            printf("[BAKER #%d:%s] Grabbing ingredients: ", bakerNum, recipeStr);
+            printf("[BAKER #%d:%s]Fridge\n", bakerNum, recipeStr);
+            //printf("[BAKER #%d:%s] Grabbing ingredients: ", bakerNum, recipeStr);
             onHand.ing = onHand.ing | (recipe.ing & storage[1].ing);
             printFridgeIng(onHand);
 
-            printf("[BAKER #%d:%s] Left Fridge\n", bakerNum, recipeStr);
+            //printf("[BAKER #%d:%s] Left Fridge\n", bakerNum, recipeStr);
             semop(fridges, &returnSem, 1);
         }
 
         if ((recipe.ing & storage[0].ing) > 0) {                    // If recipe needs ingredients from either fridge,
-            printf("[BAKER #%d:%s] Going to Pantry...\n", bakerNum, recipeStr);
+            //printf("[BAKER #%d:%s] Going to Pantry...\n", bakerNum, recipeStr);
             semop(pantry, &getSem, 1);
 
-            printf("[BAKER #%d:%s] Entered Pantry\n", bakerNum, recipeStr);
-            printf("[BAKER #%d:%s] Grabbing ingredients: ", bakerNum, recipeStr);
+            printf("[BAKER #%d:%s]Pantry:\n", bakerNum, recipeStr);
+            //printf("[BAKER #%d:%s]", bakerNum, recipeStr);
             onHand.ing = onHand.ing | (recipe.ing & storage[0].ing);
             printPantryIng(onHand);
 
-            printf("[BAKER #%d:%s] Left Pantry\n", bakerNum, recipeStr);
+            //printf("[BAKER #%d:%s] Left Pantry\n", bakerNum, recipeStr);
             semop(pantry, &returnSem, 1);
         }
 
         semop(mixers, &getSem, 1);
-        printf("[BAKER #%d:%s] Got Mixer.\n", bakerNum, recipeStr);
+        //printf("[BAKER #%d:%s] Got Mixer.\n", bakerNum, recipeStr);
         semop(bowls, &getSem, 1);
-        printf("[BAKER #%d:%s] Got Bowl.\n", bakerNum, recipeStr);
+        //printf("[BAKER #%d:%s] Got Bowl.\n", bakerNum, recipeStr);
         semop(spoons, &getSem, 1);
-        printf("[BAKER #%d:%s] Got Spoon.\n", bakerNum, recipeStr);
+        //printf("[BAKER #%d:%s] Got Spoon.\n", bakerNum, recipeStr);
 
-        printf("[BAKER #%d:%s] Mixing...\n", bakerNum, recipeStr);
+        //printf("[BAKER #%d:%s] Mixing...\n", bakerNum, recipeStr);
         sleep(1);
 
         semop(mixers, &returnSem, 1);
@@ -195,8 +195,8 @@ void* bakingTime(void* num) {
         semop(spoons, &returnSem, 1);
 
         semop(oven, &getSem, 1);
-        printf("[BAKER #%d:%s] Got Oven.\n", bakerNum, recipeStr);
-        printf("[BAKER #%d:%s] Baking...\n", bakerNum, recipeStr);
+        //printf("[BAKER #%d:%s] Got Oven.\n", bakerNum, recipeStr);
+        //printf("[BAKER #%d:%s] Baking...\n", bakerNum, recipeStr);
         sleep(1);
         semop(oven, &returnSem, 1);
 
@@ -211,32 +211,69 @@ void* bakingTime(void* num) {
 }
 
 void printPantryIng(struct reg workingReg) {
+    printf("reg: %d\n", workingReg.ing);
     //CHECK_BIT(temp, n)
-    if (CHECK_BIT(workingReg.ing, 8)) {printf("Flour, ");}
-    if (CHECK_BIT(workingReg.ing, 7)) {printf("Sugar, ");}
-    if (CHECK_BIT(workingReg.ing, 6)) {printf("Yeast, ");}
-    if (CHECK_BIT(workingReg.ing, 5)) {printf("Baking soda, ");}
-    if (CHECK_BIT(workingReg.ing, 4)) {printf("Salt, ");}
-    if (CHECK_BIT(workingReg.ing, 3)) {printf("Cinnamon, ");}
-    printf("\b\b.\n"); //this should write over the last comma
+    printf("%d", CHECK_BIT(workingReg.ing, 8) > 0);
+    if (CHECK_BIT(workingReg.ing, 8)) {
+        //printf("Flour, ");
+    }
+    printf("%d", CHECK_BIT(workingReg.ing, 7) > 0);
+    if (CHECK_BIT(workingReg.ing, 7)) {
+        //printf("Sugar, ");
+    }
+    printf("%d", CHECK_BIT(workingReg.ing, 6) > 0);
+    if (CHECK_BIT(workingReg.ing, 6)) {
+        //printf("Yeast, ");
+    }
+    printf("%d", CHECK_BIT(workingReg.ing, 5) > 0);
+    if (CHECK_BIT(workingReg.ing, 5)) {
+        //printf("Baking soda, ");
+    }
+    printf("%d", CHECK_BIT(workingReg.ing, 4) > 0);
+    if (CHECK_BIT(workingReg.ing, 4)) {
+        //printf("Salt, ");
+    }
+    printf("%d", CHECK_BIT(workingReg.ing, 3) > 0);
+    if (CHECK_BIT(workingReg.ing, 3)) {
+        //printf("Cinnamon, ");
+    }
+    printf("\n"); //this should write over the last comma
+    //printf("%x\n", workingReg.ing);
     return;
 }
 
 void printFridgeIng(struct reg workingReg) {
-    if (CHECK_BIT(workingReg.ing, 2)) {printf("Eggs, ");}
-    if (CHECK_BIT(workingReg.ing, 1)) {printf("Milk, ");}
-    if (CHECK_BIT(workingReg.ing, 0)) {printf("Butter, ");}
-    printf("\b\b.\n"); //this should write over the last comma
+    printf("reg: %d\n", workingReg.ing);
+    printf("%d", CHECK_BIT(workingReg.ing, 2) > 0);
+    if (CHECK_BIT(workingReg.ing, 2)) {
+        //printf("Eggs, ");
+    }
+    printf("%d", CHECK_BIT(workingReg.ing, 1) > 0);
+    if (CHECK_BIT(workingReg.ing, 1)) {
+        //printf("Milk, ");
+    }
+    printf("%d", CHECK_BIT(workingReg.ing, 0) > 0);
+    if (CHECK_BIT(workingReg.ing, 0)) {
+        //printf("Butter, ");
+    }
+    printf("\n"); //this should write over the last comma
+    //printf("%x\n", workingReg.ing);
     return;
 }
 
 char* printRecipeName(struct reg recipe) {
     switch (recipe.ing) {
-    case 0x183: return "COOKIES";
-    case 0x1B7: return "PANCAKES";
-    case 0xD0: return "PIZZA DOUGH";
-    case 0x1F4: return "PRETZELS";
-    case 0x19E: return "CINNAMON ROLLS";
-    default: return "PRINTRECIPENAME ERROR";
+    case 0x183:
+        return "COOKIES";
+    case 0x1B7:
+        return "PANCAKES";
+    case 0xD0:
+        return "PIZZA DOUGH";
+    case 0x1F4:
+        return "PRETZELS";
+    case 0x19E:
+        return "CINNAMON ROLLS";
+    default:
+        return "PRINTRECIPENAME ERROR";
     }
 }
