@@ -20,7 +20,7 @@
 
 // 10 bits for the ingredient register 
 struct reg {
-    unsigned int ing : 10;	
+    unsigned int ing : 9;
 };
 
 //Struct to hold recipe registers
@@ -161,7 +161,7 @@ void* bakingTime(void* num) {
         printf("[BAKER #%d] chooses %s!\n", bakerNum, recipeStr);
 
         // If recipe needs ingredients from one of the fridges:
-        if ((recipe.ing & storage[1].ing) > 0) {    
+        if ((recipe.ing & storage[1].ing) > 0) {
             printf("[BAKER #%d:%s] Going to Fridge...\n", bakerNum, recipeStr);
             semop(fridges, &getSem, 1);
 
@@ -175,7 +175,7 @@ void* bakingTime(void* num) {
         }
 
         // If recipe needs ingredients from the pantry:
-        if ((recipe.ing & storage[0].ing) > 0) {  
+        if ((recipe.ing & storage[0].ing) > 0) {
             printf("[BAKER #%d:%s] Going to Pantry...\n", bakerNum, recipeStr);
             semop(pantry, &getSem, 1);
 
@@ -197,6 +197,7 @@ void* bakingTime(void* num) {
 
         printf("[BAKER #%d:%s] Mixing...\n", bakerNum, recipeStr);
         sleep(1);
+        printf("[BAKER #%d:%s] Finished mixing\n", bakerNum, recipeStr);
 
         semop(mixers, &returnSem, 1);
         semop(bowls, &returnSem, 1);
@@ -206,7 +207,10 @@ void* bakingTime(void* num) {
         printf("[BAKER #%d:%s] Got Oven.\n", bakerNum, recipeStr);
         printf("[BAKER #%d:%s] Baking...\n", bakerNum, recipeStr);
         sleep(1);
+        printf("[BAKER #%d:%s] Finished with oven\n", bakerNum, recipeStr);
         semop(oven, &returnSem, 1);
+        
+        printf("[BAKER #%d:%s] Recipe Finished!\n", bakerNum, recipeStr);
 
         onHand.ing = 0;
     }
@@ -224,22 +228,21 @@ void* bakingTime(void* num) {
 
 //Prints what pantry ingredients a register contains
 void printPantryIng(struct reg workingReg) {
-    //CHECK_BIT(temp, n)
-    if (CHECK_BIT(workingReg.ing, 8)) {printf("Flour, ");}
-    if (CHECK_BIT(workingReg.ing, 7)) {printf("Sugar, ");}
-    if (CHECK_BIT(workingReg.ing, 6)) {printf("Yeast, ");}
-    if (CHECK_BIT(workingReg.ing, 5)) {printf("Baking soda, ");}
-    if (CHECK_BIT(workingReg.ing, 4)) {printf("Salt, ");}
-    if (CHECK_BIT(workingReg.ing, 3)) {printf("Cinnamon, ");}
+    if (CHECK_BIT(workingReg.ing, 8)) { printf("Flour, "); }
+    if (CHECK_BIT(workingReg.ing, 7)) { printf("Sugar, "); }
+    if (CHECK_BIT(workingReg.ing, 6)) { printf("Yeast, "); }
+    if (CHECK_BIT(workingReg.ing, 5)) { printf("Baking soda, "); }
+    if (CHECK_BIT(workingReg.ing, 4)) { printf("Salt, "); }
+    if (CHECK_BIT(workingReg.ing, 3)) { printf("Cinnamon, "); }
     printf("\b\b.\n"); //this should write over the last comma
     return;
 }
 
 //Prints what fridge ingredients a register contains
 void printFridgeIng(struct reg workingReg) {
-    if (CHECK_BIT(workingReg.ing, 2)) {printf("Eggs, ");}
-    if (CHECK_BIT(workingReg.ing, 1)) {printf("Milk, ");}
-    if (CHECK_BIT(workingReg.ing, 0)) {printf("Butter, ");}
+    if (CHECK_BIT(workingReg.ing, 2)) { printf("Eggs, "); }
+    if (CHECK_BIT(workingReg.ing, 1)) { printf("Milk, "); }
+    if (CHECK_BIT(workingReg.ing, 0)) { printf("Butter, "); }
     printf("\b\b.\n"); //this should write over the last comma
     return;
 }
