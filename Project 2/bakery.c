@@ -18,10 +18,12 @@
 // https://stackoverflow.com/questions/523724/c-c-check-if-one-bit-is-set-in-i-e-int-variable
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 
+// 10 bits for the ingredient register 
 struct reg {
-    unsigned int ing : 10;	// 10 bits for the ingredient register 
+    unsigned int ing : 10;	
 };
 
+//Struct to hold recipe registers
 struct reg cookbook[5] = {
     {.ing = 0x183},
     {.ing = 0x1B7},
@@ -30,16 +32,19 @@ struct reg cookbook[5] = {
     {.ing = 0x19E}
 };
 
+//Struct to hold fridge/pantry data (what ingredients they contain)
 struct reg storage[2] = {
-    {.ing = 0x1F8},
-    {.ing = 0x7}
+    {.ing = 0x1F8}, //Pantry
+    {.ing = 0x7} //Fridge
 };
 
+//Function prototypes
 void* bakingTime(void* num); //Prototype so the function can go below main
 void printFridgeIng(struct reg workingReg);
 void printPantryIng(struct reg workingReg);
 char* printRecipeName(struct reg recipe);
 
+//Semaphore names & operations
 int mixers, pantry, fridges, bowls, spoons, oven;
 struct sembuf getSem = { 0, -1, 0 };
 struct sembuf returnSem = { 0, 1, 0 };
@@ -88,15 +93,15 @@ int main() {
     /////////////////////////////
 
     int numBakers;      // Will hold the number of bakers/threads taken from input
-    char numInput[4];   // Holds user input - in project1 this was only 1 long? honestly not sure how that even worked
+    char numInput[4];   // User input buffer
 
     do {
         printf("Number of bakers [1-255]: "); //technically up to 999
-        fgets(numInput, sizeof(numBakers) + 1, stdin); //will cause problems if >999, probably not important to fix tho
+        fgets(numInput, sizeof(numBakers) + 1, stdin); //will cause problems if >999
         numBakers = atoi(numInput);
-    } while (numBakers < 1);
+    } while (numBakers < 1); //Must be at least 1 baker
 
-    pthread_t threads[numBakers + 1]; //TODO test if this works without the +1
+    pthread_t threads[numBakers + 1];
     for (int i = 0; i <= numBakers - 1; i++) {
         int* bakerNumPtr = malloc(sizeof(int)); //Ensures the thread reads the correct value
         *bakerNumPtr = i + 1;
@@ -127,18 +132,17 @@ int main() {
 void* bakingTime(void* num) {
 
     int bakerNum = *(int*)num;
-    free(num);
+    free(num); //frees bakerNum variable malloc'd in main
 
     printf("[BAKER #%d] Starting...\n", bakerNum);
 
-    //sleep(1); //This is where all the actual stuff goes
     // BAKER LOGIC START
 
-
-    struct reg onHand, recipe;
+    struct reg onHand, recipe; //Register for what baker has & what recipe uses
     onHand.ing = 0;
     recipe.ing = 0;
 
+    //Randomize recipe completion order
     int order[] = { 0, 1, 2, 3, 4 };
     for (int i = 0; i < 5; i++) {
         int temp = order[i];
@@ -147,14 +151,17 @@ void* bakingTime(void* num) {
         order[randSelect] = temp;
     }
 
+    //Baking loop
     for (int i = 0; i < 5; i++) {
+        //Set recipe, get string of recipe name
         recipe = cookbook[order[i]];
         char recipeStr[25];
         strcpy(recipeStr, printRecipeName(recipe));
 
         printf("[BAKER #%d] chooses %s!\n", bakerNum, recipeStr);
 
-        if ((recipe.ing & storage[1].ing) > 0) {                    // If recipe needs ingredients from pantry,
+        // If recipe needs ingredients from one of the fridges:
+        if ((recipe.ing & storage[1].ing) > 0) {    
             printf("[BAKER #%d:%s] Going to Fridge...\n", bakerNum, recipeStr);
             semop(fridges, &getSem, 1);
 
@@ -167,7 +174,8 @@ void* bakingTime(void* num) {
             semop(fridges, &returnSem, 1);
         }
 
-        if ((recipe.ing & storage[0].ing) > 0) {                    // If recipe needs ingredients from either fridge,
+        // If recipe needs ingredients from the pantry:
+        if ((recipe.ing & storage[0].ing) > 0) {  
             printf("[BAKER #%d:%s] Going to Pantry...\n", bakerNum, recipeStr);
             semop(pantry, &getSem, 1);
 
@@ -210,6 +218,11 @@ void* bakingTime(void* num) {
     return NULL;
 }
 
+/////////////////////////
+// HELPER FUNCTIONS
+/////////////////////////
+
+//Prints what pantry ingredients a register contains
 void printPantryIng(struct reg workingReg) {
     //CHECK_BIT(temp, n)
     if (CHECK_BIT(workingReg.ing, 8)) {printf("Flour, ");}
@@ -222,6 +235,7 @@ void printPantryIng(struct reg workingReg) {
     return;
 }
 
+//Prints what fridge ingredients a register contains
 void printFridgeIng(struct reg workingReg) {
     if (CHECK_BIT(workingReg.ing, 2)) {printf("Eggs, ");}
     if (CHECK_BIT(workingReg.ing, 1)) {printf("Milk, ");}
@@ -230,6 +244,7 @@ void printFridgeIng(struct reg workingReg) {
     return;
 }
 
+//Given a register, returns what recipe the register is for
 char* printRecipeName(struct reg recipe) {
     switch (recipe.ing) {
     case 0x183: return "COOKIES";
