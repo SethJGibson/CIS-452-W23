@@ -33,13 +33,17 @@ struct reg storage[2] = {
     {.ing = 0x7}
 };
 
-struct ThreadArgs {
-    struct sembuf * getSem;
-    struct sembuf * returnSem;
+//struct ThreadArgs {
+//    struct sembuf* getSem;
+//    struct sembuf* returnSem;
+//
+//    int* mixers, pantry, fridges, bowls, spoons, oven;
+//    int* bakerNum;
+//};
 
-    int * mixers, pantry, fridges, bowls, spoons, oven;
-    int* bakerNum;
-};
+int mixers, pantry, fridges, bowls, spoons, oven;
+struct sembuf getSem = { 0, -1, 0 };
+struct sembuf returnSem = { 0, 1, 0 };
 
 int main() {
 
@@ -48,18 +52,18 @@ int main() {
     /////////////////////////////
 
     //Semaphore operations
-    struct sembuf getSem;
-    getSem.sem_num = 0; //Which semaphore in a set to perform the op on.
-    getSem.sem_op = -1; //Value to modify the semVal by.
-    getSem.sem_flg = 0; //IPC_NOWAIT and/or SEM_UNDO
+    //struct sembuf getSem;
+    //getSem.sem_num = 0; //Which semaphore in a set to perform the op on.
+    //getSem.sem_op = -1; //Value to modify the semVal by.
+    //getSem.sem_flg = 0; //IPC_NOWAIT and/or SEM_UNDO
 
-    struct sembuf returnSem;
-    returnSem.sem_num = 0;
-    returnSem.sem_op = 1;
-    returnSem.sem_flg = 0;
+    //struct sembuf returnSem;
+    //returnSem.sem_num = 0;
+    //returnSem.sem_op = 1;
+    //returnSem.sem_flg = 0;
 
     //Initialize semaphores
-    int mixers, pantry, fridges, bowls, spoons, oven;
+    //int mixers, pantry, fridges, bowls, spoons, oven;
     if ((mixers = semget(IPC_PRIVATE, 1, 0600)) == -1) {
         perror("ERROR: semget mixers.\n");
         exit(1);
@@ -168,48 +172,49 @@ void* bakingTime(void* num) {
         // THIS IS WHERE THE LOGIC CHUNK WILL GO
         if ((recipe.ing & storage[0].ing) > 0) {                    // If recipe needs ingredients from pantry,
             printf("BAKER #%d: Going to Fridge...\n", bakerNum);
-            semop(fridges, getSem, 1);                              // PROBLEM! Semaphores arent here in the thread function!
+            semop(fridges, &getSem, 1);                              // PROBLEM! Semaphores arent here in the thread function!
 
             printf("BAKER #%d: Entered Fridge\n", bakerNum);
             /*baker = baker | fridges;*/
             onHand.ing = onHand.ing | (recipe.ing & storage[0].ing);
 
             printf("BAKER #%d: Left Fridge\n", bakerNum);
-            semop(fridge, returnSem, 1);
+            semop(fridges, &returnSem, 1);
         }
 
         if ((recipe.ing & storage[1].ing) > 0) {                    // If recipe needs ingredients from either fridge,
             printf("BAKER #%d: Going to Pantry...\n", bakerNum);
-            semop(pantry, getSem, 1);
+            semop(pantry, &getSem, 1);
 
             printf("BAKER #%d: Entered Pantry\n", bakerNum);
             //baker = baker | pantry;
             onHand.ing = onHand.ing | (recipe.ing & storage[1].ing);
 
             printf("BAKER #%d: Left Pantry\n", bakerNum);
-            semop(pantry, returnSem, 1);
+            semop(pantry, &returnSem, 1);
         }
 
-        semop(mixers, getSem, 1);
+        semop(mixers, &getSem, 1);
         printf("BAKER #%d: Got Mixer.\n", bakerNum);
-        semop(bowls, getSem, 1);
+        semop(bowls, &getSem, 1);
         printf("BAKER #%d: Got Bowl.\n", bakerNum);
-        semop(spoons, getSem, 1);
+        semop(spoons, &getSem, 1);
         printf("BAKER #%d: Got Spoon.\n", bakerNum);
+        //sleep(1);
+
+        printf("BAKER #%d: Mixing...\n", bakerNum);
         sleep(1);
 
-        printf("BAKER #%d: Mixing %s...\n", bakerNum, recipe)
-            sleep(1);
+        semop(mixers, &returnSem, 1);
+        semop(bowls, &returnSem, 1);
+        semop(spoons, &returnSem, 1);
 
-        semop(mixers, returnSem, 1);
-        semop(bowls, returnSem, 1);
-        semop(spoons, returnSem, 1);
-
-        semop(oven, getSem, 1);
+        semop(oven, &getSem, 1);
         printf("BAKER #%d: Got Oven.\n", bakerNum);
-        printf("BAKER #%d: Baking %s...\n", bakerNum, recipe);
+        //printf("BAKER #%d: Baking %s...\n", bakerNum, recipe);
+        printf("BAKER #%d: Baking...\n", bakerNum);
         sleep(1);
-        semop(oven, returnSem, 1);
+        semop(oven, &returnSem, 1);
     }
 
     // BAKER LOGIC END
