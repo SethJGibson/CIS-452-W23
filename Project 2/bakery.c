@@ -137,7 +137,6 @@ void* bakingTime(void* num) {
     onHand.ing = 0;                                 // Register for what baker retrieved
     recipe.ing = 0;                                 // Register for what recipe calls for
 
-    srand(time(NULL));                              // Randomize recipe completion order
     int order[] = { 0, 1, 2, 3, 4 };                
     for (int i = 0; i < 5; i++) {
         int temp = order[i];
